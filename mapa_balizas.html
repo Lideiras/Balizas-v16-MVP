@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚧 Balizas Activas - Mapa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .baliza-popup {
+            min-width: 280px;
+        }
+        .baliza-popup h3 {
+            color: #c0392b;
+            margin-bottom: 8px;
+            font-size: 14px;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 4px;
+        }
+        .baliza-popup .info-row {
+            display: flex;
+            margin: 4px 0;
+            font-size: 13px;
+        }
+        .baliza-popup .label {
+            font-weight: 600;
+            color: #555;
+            min-width: 90px;
+        }
+        .baliza-popup .value {
+            color: #222;
+        }
+        .baliza-popup .ubicacion {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .baliza-popup .precision {
+            font-size: 11px;
+            color: #888;
+            margin-top: 6px;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            color: white;
+            padding: 12px 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header .stats {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        #map {
+            margin-top: 50px;
+            height: calc(100vh - 50px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚧 Balizas Activas DGT</h1>
+        <div class="stats" id="stats">Cargando...</div>
+    </div>
+    <div id="map"></div>
+    
+    <script>
+        const balizas = [{"id": "30561264", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "CASTILLA-LA MANCHA", "provincia": "TOLEDO", "poblacion": "CASAR DE TALAVERA (EL)", "carretera": "A-5", "pk": "121.055", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-5 en el km 121.055 en CASAR DE TALAVERA (EL) (TOLEDO) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 39.9628741, "longitud": -4.9177583, "precision_geo": "alta"}, {"id": "30561258", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "ARAGÓN", "provincia": "HUESCA", "poblacion": "", "carretera": "A-132", "pk": "0", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-132 en el km 0 en HUESCA (HUESCA) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 42.3840636, "longitud": -0.7376227, "precision_geo": "media"}, {"id": "30561257", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "ANDALUCÍA", "provincia": "JAÉN", "poblacion": "CRUJIA (LA)", "carretera": "A-4", "pk": "306.886", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-4 en el km 306.886 en CRUJIA (LA) (JAÉN) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 38.056681, "longitud": -3.8873081, "precision_geo": "alta"}, {"id": "30561422", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "GALICIA", "provincia": "PONTEVEDRA", "poblacion": "OUTEIRIÑO (O)", "carretera": "A-52", "pk": "299.15", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-52 en el km 299.15 en OUTEIRIÑO (O) (PONTEVEDRA) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 42.6268491, "longitud": -8.4812299, "precision_geo": "alta"}, {"id": "30561256", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "CASTILLA Y LEÓN", "provincia": "BURGOS", "poblacion": "VILLEGAS", "carretera": "BU-640", "pk": "8.456", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera BU-640 en el km 8.456 en VILLEGAS (BURGOS) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 42.468108, "longitud": -4.0169491, "precision_geo": "media"}, {"id": "30561421", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "ANDALUCÍA", "provincia": "CÓRDOBA", "poblacion": "CARPIO (EL)", "carretera": "A-4", "pk": "373.291", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-4 en el km 373.291 en CARPIO (EL) (CÓRDOBA) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 37.9388192, "longitud": -4.4993246, "precision_geo": "alta"}, {"id": "30561419", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "CANARIAS", "provincia": "PALMAS, LAS", "poblacion": "PUERTO LAJAS", "carretera": "FV-1", "pk": "4.16", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera FV-1 en el km 4.16 en PUERTO LAJAS (PALMAS, LAS) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 28.5387878, "longitud": -13.8423122, "precision_geo": "alta"}, {"id": "30561417", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "CASTILLA Y LEÓN", "provincia": "SEGOVIA", "poblacion": "CUELLAR", "carretera": "A-601", "pk": "50.131", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-601 en el km 50.131 en CUELLAR (SEGOVIA) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 41.3473669, "longitud": -4.3015763, "precision_geo": "muy_alta"}, {"id": "30561416", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "ANDALUCÍA", "provincia": "MÁLAGA", "poblacion": "BOBADILLA-ESTACION", "carretera": "A-384", "pk": "115.701", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-384 en el km 115.701 en BOBADILLA-ESTACION (MÁLAGA) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 37.036552, "longitud": -4.7284207, "precision_geo": "alta"}, {"id": "30561415", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "CASTILLA-LA MANCHA", "provincia": "TOLEDO", "poblacion": "IDARSAGRA", "carretera": "A-42", "pk": "45.843", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-42 en el km 45.843 en IDARSAGRA (TOLEDO) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 40.0638003, "longitud": -3.9009209, "precision_geo": "muy_alta"}, {"id": "30561414", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:55", "hora_inicio": "14:55", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "ANDALUCÍA", "provincia": "SEVILLA", "poblacion": "ALCALA DE GUADAIRA", "carretera": "A-92", "pk": "13.329", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-92 en el km 13.329 en ALCALA DE GUADAIRA (SEVILLA) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 37.3397709, "longitud": -5.8408396, "precision_geo": "alta"}, {"id": "30561413", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "NAVARRA", "provincia": "NAVARRA", "poblacion": "ARAZURI", "carretera": "A-15", "pk": "91.442", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-15 en el km 91.442 en ARAZURI (NAVARRA) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 42.7979293, "longitud": -1.6998801, "precision_geo": "muy_alta"}, {"id": "30561412", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "ANDALUCÍA", "provincia": "HUELVA", "poblacion": "La Alquería", "carretera": "A-5000", "pk": "1.318", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-5000 en el km 1.318 en La Alquería (HUELVA) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 37.310277, "longitud": -6.8970537, "precision_geo": "media"}, {"id": "30561409", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "DESCONOCIDA", "provincia": "VALENCIA/VALÈNCIA", "poblacion": "CORBERA", "carretera": "CV-510", "pk": "8.042", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera CV-510 en el km 8.042 en CORBERA (VALENCIA/VALÈNCIA) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 39.1580768, "longitud": -0.3540631, "precision_geo": "media"}, {"id": "30561253", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "COMUNIDAD DE MADRID", "provincia": "MADRID", "poblacion": "", "carretera": "A-6", "pk": "9.241", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-6 en el km 9.241 en MADRID (MADRID) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 40.512432, "longitud": -3.678922, "precision_geo": "baja"}, {"id": "30561410", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "COMUNIDAD DE MADRID", "provincia": "MADRID", "poblacion": "NEGRALES-LOS LLANOS (LOS)", "carretera": "N-6", "pk": "41.871", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera N-6 en el km 41.871 en NEGRALES-LOS LLANOS (LOS) (MADRID) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 40.63633, "longitud": -4.0253824, "precision_geo": "alta"}, {"id": "30561403", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "ANDALUCÍA", "provincia": "JAÉN", "poblacion": "CORTIJOS NUEVOS", "carretera": "N-322", "pk": "219.736", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera N-322 en el km 219.736 en CORTIJOS NUEVOS (JAÉN) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 38.2482595, "longitud": -2.7248004, "precision_geo": "alta"}, {"id": "30561395", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "EXTREMADURA", "provincia": "BADAJOZ", "poblacion": "CABEZA DEL BUEY", "carretera": "EX-104", "pk": "69.133", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera EX-104 en el km 69.133 en CABEZA DEL BUEY (BADAJOZ) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 38.7117715, "longitud": -5.2478216, "precision_geo": "muy_alta"}, {"id": "30561394", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "GALICIA", "provincia": "OURENSE", "poblacion": "SEIXALBO", "carretera": "OU-105", "pk": "0.847", "sentido": "DECRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera OU-105 en el km 0.847 en SEIXALBO (OURENSE) sentido DECRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 42.3063176, "longitud": -7.8518655, "precision_geo": "alta"}, {"id": "30561392", "tipo": "OBSTÁCULO FIJO", "fecha_inicio": "14:54", "hora_inicio": "14:54", "fecha_fin": null, "hora_fin": null, "nivel": "desconocido", "comunidad": "COMUNIDAD DE MADRID", "provincia": "MADRID", "poblacion": "TORREJON DE ARDOZ", "carretera": "A-2", "pk": "20.782", "sentido": "CRECIENTE", "descripcion": "OBSTÁCULO FIJO en: - La carretera A-2 en el km 20.782 en TORREJON DE ARDOZ (MADRID) sentido CRECIENTE DE LA KILOMETRACIÓN", "activa": true, "latitud": 40.4688505, "longitud": -3.4347535, "precision_geo": "muy_alta"}];
+        
+        // Inicializar mapa centrado en España
+        const map = L.map('map').setView([40.4168, -3.7038], 6);
+        
+        // Capa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors | Datos: DGT'
+        }).addTo(map);
+        
+        // Icono personalizado para balizas
+        const balizaIcon = L.divIcon({
+            className: 'baliza-marker',
+            html: '<div style="background: #e74c3c; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">⚠</div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            popupAnchor: [0, -12]
+        });
+        
+        // Añadir marcadores
+        let count = 0;
+        balizas.forEach(b => {
+            if (b.latitud && b.longitud) {
+                const popup = `
+                    <div class="baliza-popup">
+                        <h3>🚧 ${b.tipo}</h3>
+                        <div class="info-row">
+                            <span class="label">📍 Carretera:</span>
+                            <span class="value">${b.carretera} km ${b.pk || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">🏛️ Comunidad:</span>
+                            <span class="value">${b.comunidad}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">🏘️ Provincia:</span>
+                            <span class="value">${b.provincia}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">🏠 Población:</span>
+                            <span class="value">${b.poblacion || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">➡️ Sentido:</span>
+                            <span class="value">${b.sentido || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">🕐 Inicio:</span>
+                            <span class="value">${b.fecha_inicio} ${b.hora_inicio}</span>
+                        </div>
+                        <div class="ubicacion">
+                            <div class="info-row">
+                                <span class="label">🌍 Lat:</span>
+                                <span class="value">${b.latitud.toFixed(6)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">🌍 Lon:</span>
+                                <span class="value">${b.longitud.toFixed(6)}</span>
+                            </div>
+                            <div class="precision">Precisión: ${b.precision_geo || 'N/A'}</div>
+                        </div>
+                    </div>
+                `;
+                
+                L.marker([b.latitud, b.longitud], {icon: balizaIcon})
+                    .bindPopup(popup)
+                    .addTo(map);
+                count++;
+            }
+        });
+        
+        document.getElementById('stats').textContent = `${count} balizas en el mapa`;
+    </script>
+</body>
+</html>
